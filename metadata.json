@@ -1,0 +1,6 @@
+{
+  "name": "RETAKE — AI Production Intelligence",
+  "description": "A luxury, cinematic AI production intelligence platform for filmmakers to catch production, continuity, and scheduling mistakes before shooting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
