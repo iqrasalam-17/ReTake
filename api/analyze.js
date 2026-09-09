@@ -96,46 +96,17 @@ function sanitizeOptimizedOrderItem(o, i) {
   };
 }
 
-function sanitizeBlueprint(b, i, allScenes) {
+function sanitizeBlueprint(b, i) {
   b = b || {};
-  let locations = asArray(b.locations, []).map(String).filter(Boolean);
-  let scenesArr = asArray(b.scenes, []).map(Number).filter((n) => Number.isFinite(n));
-  let cast = asArray(b.cast, []).map(String).filter(Boolean);
-  let keyWardrobe = asArray(b.keyWardrobe, []).map(String).filter(Boolean);
-  let keyProps = asArray(b.keyProps, []).map(String).filter(Boolean);
-
-  // BACKFILL: if any critical field is empty, derive it from the full scene list
-  if (Array.isArray(allScenes) && allScenes.length) {
-    const relevantScenes = scenesArr.length
-      ? allScenes.filter((s) => scenesArr.includes(s.sceneNumber))
-      : allScenes;
-
-    if (!locations.length) {
-      locations = [...new Set(relevantScenes.map((s) => s.location))].filter(Boolean);
-    }
-    if (!scenesArr.length) {
-      scenesArr = relevantScenes.map((s) => s.sceneNumber);
-    }
-    if (!cast.length) {
-      cast = [...new Set(relevantScenes.flatMap((s) => s.characters))].filter(Boolean);
-    }
-    if (!keyWardrobe.length) {
-      keyWardrobe = [...new Set(relevantScenes.flatMap((s) => s.wardrobe))].filter(Boolean);
-    }
-    if (!keyProps.length) {
-      keyProps = [...new Set(relevantScenes.flatMap((s) => s.props))].filter(Boolean);
-    }
-  }
-
   return {
     day: asNumber(b.day, i + 1),
     targetHours: asString(b.targetHours, "08:00 - 18:00"),
-    locations: locations.length ? locations : ["Primary Set"],
-    scenes: scenesArr,
-    cast: cast.length ? cast : ["Principal Cast"],
-    keyWardrobe,
-    keyProps,
-    notes: asString(b.notes, "Auto-synthesized shooting day from scene breakdown."),
+    locations: asArray(b.locations, []).map(String),
+    scenes: asArray(b.scenes, []).map(Number).filter((n) => Number.isFinite(n)),
+    cast: asArray(b.cast, []).map(String),
+    keyWardrobe: asArray(b.keyWardrobe, []).map(String),
+    keyProps: asArray(b.keyProps, []).map(String),
+    notes: asString(b.notes, ""),
   };
 }
 
@@ -187,8 +158,8 @@ function sanitizeFullResult(raw, parallelSources) {
       : scenes.map((s, i) => sanitizeOptimizedOrderItem({ sceneNumber: s.sceneNumber, heading: s.heading, day: 1 }, i)),
 
     blueprints: asArray(raw.blueprints).length
-  ? asArray(raw.blueprints).map((b, i) => sanitizeBlueprint(b, i, scenes))
-  : [sanitizeBlueprint({ day: 1 }, 0, scenes)],
+      ? asArray(raw.blueprints).map(sanitizeBlueprint)
+      : [
           sanitizeBlueprint(
             {
               day: 1,
@@ -311,7 +282,7 @@ Analyze the screenplay and constraints below and return ONLY valid JSON (no mark
   ]
 }
 
-Use the live Parallel Search sources below for the locationIntel field's sunsetTime, weatherNote, and permitInfo — cite them as "Grounded via Parallel Web Search" in searchSource when used. For locationIntel, be SPECIFIC and CONCISE. Extract exact times/temperatures/permit facts from the Parallel Search results below. If a Parallel result doesn't give an exact answer, state your best estimate clearly (e.g. "Approx. 6:45 PM PST") rather than vague filler text. Never say "see live search notes" — always give a concrete value.
+Use the live Parallel Search sources below for the locationIntel field's sunsetTime, weatherNote, and permitInfo — cite them as "Grounded via Parallel Web Search" in searchSource when used.
 
 SCREENPLAY:
 ${String(screenplay).slice(0, 12000)}
